@@ -5,6 +5,7 @@
 import { render } from '@testing-library/react-native';
 
 const mockUseAuthSession = jest.fn();
+const mockUseAppStore = jest.fn();
 const mockWarn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
 
 jest.mock('../../src/lib/devConfig', () => ({
@@ -25,9 +26,9 @@ jest.mock('../../src/components/StartupSplash', () => ({
   StartupSplash: ({ subtitle }: { subtitle: string }) => subtitle,
 }));
 
-jest.mock('../../src/lib/AppContext', () => ({
-  AppProvider: ({ children }: { children: React.ReactNode }) => children,
-  useAppContext: jest.fn(),
+jest.mock('../../src/stores/appStore', () => ({
+  useAppStore: (selector: (state: { initializeForUser: jest.Mock; clearForSignedOut: jest.Mock; loadProfile: jest.Mock }) => unknown) =>
+    selector(mockUseAppStore()),
 }));
 
 jest.mock('../../src/screens/AuthScreen', () => ({
@@ -95,6 +96,11 @@ import { AppNavigator } from '../../src/navigation/AppNavigator';
 describe('AppNavigator', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseAppStore.mockReturnValue({
+      initializeForUser: jest.fn(),
+      clearForSignedOut: jest.fn(),
+      loadProfile: jest.fn().mockResolvedValue(undefined),
+    });
   });
 
   afterAll(() => {
