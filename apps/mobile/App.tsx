@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 
 import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AppErrorBoundary } from './src/components/AppErrorBoundary';
 import { useSyncQueue } from './src/hooks/useSyncQueue';
@@ -46,12 +47,14 @@ const AppBootstrap = () => {
 
 const App = () => {
   return (
-    <AppErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <StatusBar style="light" />
-        <AppBootstrap />
-      </QueryClientProvider>
-    </AppErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <StatusBar style="light" />
+          <AppBootstrap />
+        </QueryClientProvider>
+      </AppErrorBoundary>
+    </GestureHandlerRootView>
   );
 };
 

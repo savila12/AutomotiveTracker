@@ -22,3 +22,38 @@ jest.mock('expo-secure-store', () => {
     }),
   };
 });
+
+jest.mock('@gorhom/bottom-sheet', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+
+  const BottomSheetModal = React.forwardRef(({ children, onDismiss }, ref) => {
+    const [open, setOpen] = React.useState(false);
+
+    React.useImperativeHandle(ref, () => ({
+      present: jest.fn(() => {
+        setOpen(true);
+      }),
+      dismiss: jest.fn(() => {
+        setOpen(false);
+        if (onDismiss) {
+          onDismiss();
+        }
+      }),
+    }));
+
+    return open ? <View>{children}</View> : null;
+  });
+
+  const BottomSheetModalProvider = ({ children }) => <View>{children}</View>;
+  const BottomSheetBackdrop = () => null;
+  const BottomSheetView = ({ children, style }) => <View style={style}>{children}</View>;
+
+  return {
+    __esModule: true,
+    BottomSheetModal,
+    BottomSheetModalProvider,
+    BottomSheetBackdrop,
+    BottomSheetView,
+  };
+});

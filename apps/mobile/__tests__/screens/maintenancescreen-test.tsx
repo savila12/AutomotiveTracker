@@ -113,6 +113,7 @@ describe('MaintenanceScreen', () => {
         const user = userEvent.setup();
 
         await user.press(screen.getByRole('button', { name: 'Mark Complete' }));
+        await user.press(screen.getByRole('button', { name: 'Complete Task' }));
 
         expect(alertSpy).toHaveBeenCalledWith('Missing fields', 'Enter completion mileage and cost first.');
         expect(mockCompleteTask).not.toHaveBeenCalled();
@@ -174,11 +175,11 @@ describe('MaintenanceScreen', () => {
 
         const view = render(<MaintenanceScreen />);
         const user = userEvent.setup();
+        await user.press(screen.getByRole('button', { name: 'Mark Complete' }));
         const inputs = view.UNSAFE_getAllByType(TextInput);
         fireEvent.changeText(inputs[0], '50000');
         fireEvent.changeText(inputs[1], '75');
-
-        await user.press(screen.getByRole('button', { name: 'Mark Complete' }));
+        await user.press(screen.getByRole('button', { name: 'Complete Task' }));
 
         await waitFor(() => {
             expect(mockCompleteTask).toHaveBeenCalledWith({
@@ -202,11 +203,12 @@ describe('MaintenanceScreen', () => {
         });
 
         const view = render(<MaintenanceScreen />);
-        const inputs = view.UNSAFE_getAllByType(TextInput);
         const user = userEvent.setup();
+        await user.press(screen.getByRole('button', { name: 'Mark Complete' }));
+        const inputs = view.UNSAFE_getAllByType(TextInput);
         fireEvent.changeText(inputs[0], '50000');
         fireEvent.changeText(inputs[1], '75');
-        await user.press(screen.getByRole('button', { name: 'Mark Complete' }));
+        await user.press(screen.getByRole('button', { name: 'Complete Task' }));
 
         await waitFor(() => {
             expect(alertSpy).toHaveBeenCalledWith('Could not complete task', 'Server error');
@@ -225,13 +227,14 @@ describe('MaintenanceScreen', () => {
         const view = render(<MaintenanceScreen />);
         const user = userEvent.setup();
 
+        await user.press(screen.getByRole('button', { name: 'Mark Complete' }));
         await user.press(screen.getByRole('button', { name: 'Attach Receipt (Optional)' }));
         await waitFor(() => expect(screen.getByRole('button', { name: 'Receipt Attached ✓' })).toBeOnTheScreen());
 
         const inputs = view.UNSAFE_getAllByType(TextInput);
         fireEvent.changeText(inputs[0], '50000');
         fireEvent.changeText(inputs[1], '75');
-        await user.press(screen.getByRole('button', { name: 'Mark Complete' }));
+        await user.press(screen.getByRole('button', { name: 'Complete Task' }));
 
         await waitFor(() => {
             expect(mockUploadReceipt).toHaveBeenCalledWith('user-1', 'file://photo.jpg');
@@ -259,11 +262,12 @@ describe('MaintenanceScreen', () => {
         });
 
         const view = render(<MaintenanceScreen />);
-        const inputs = view.UNSAFE_getAllByType(TextInput);
         const user = userEvent.setup();
+        await user.press(screen.getByRole('button', { name: 'Mark Complete' }));
+        const inputs = view.UNSAFE_getAllByType(TextInput);
         fireEvent.changeText(inputs[0], '50000');
         fireEvent.changeText(inputs[1], '75');
-        await user.press(screen.getByRole('button', { name: 'Mark Complete' }));
+        await user.press(screen.getByRole('button', { name: 'Complete Task' }));
 
         await waitFor(() => {
             expect(alertSpy).toHaveBeenCalledWith('Could not complete task', 'custom message');
@@ -280,11 +284,12 @@ describe('MaintenanceScreen', () => {
         });
 
         const view = render(<MaintenanceScreen />);
-        const inputs = view.UNSAFE_getAllByType(TextInput);
         const user = userEvent.setup();
+        await user.press(screen.getByRole('button', { name: 'Mark Complete' }));
+        const inputs = view.UNSAFE_getAllByType(TextInput);
         fireEvent.changeText(inputs[0], '50000');
         fireEvent.changeText(inputs[1], '75');
-        await user.press(screen.getByRole('button', { name: 'Mark Complete' }));
+        await user.press(screen.getByRole('button', { name: 'Complete Task' }));
 
         await waitFor(() => {
             expect(alertSpy).toHaveBeenCalledWith('Could not complete task', 'Please try again.');

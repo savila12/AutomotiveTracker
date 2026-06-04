@@ -4,6 +4,7 @@ import { InputField } from '../components/InputField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { signUpWithPassword } from '../lib/auth';
+import { getErrorMessage } from '../lib/errorMessage';
 import { View, Text, StyleSheet, BackHandler, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -11,20 +12,6 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const getErrorMessage = (error: unknown): string => {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  if (error && typeof error === 'object') {
-    const maybeError = error as { message?: string; details?: string; hint?: string };
-    return maybeError.message || maybeError.details || maybeError.hint || 'Please try again.';
-  }
-
-  return 'Please try again.';
-};
-
 export const CreateAccountScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'CreateAccount'>>();
   const [email, setEmail] = useState('');

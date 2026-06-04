@@ -1,31 +1,22 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
-
+import {
+  BottomSheetModal,
+  BottomSheetModalProvider,
+} from '@gorhom/bottom-sheet';
+import { SafeAreaView } from 'react-native-safe-area-context';
 // Styling tier: stable. Use NativeWind for layout; move to explicit styles if form UX regresses.
 import { InputField } from '../components/InputField';
+import { MaintenanceCompletionSheet } from '../components/MaintenanceCompletionSheet';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { useAutoTrack } from '../hooks/useAutoTrack';
+import { useMaintenanceCompletion } from '../hooks/useMaintenanceCompletion';
 import { useAppContext } from '../lib/AppContext';
-import { pickImageAsync, uploadReceipt } from '../lib/image';
 import {
-  cancelMaintenanceReminder,
   requestNotificationPermission,
   scheduleMaintenanceReminder,
 } from '../lib/notifications';
-
-const getErrorMessage = (error: unknown): string => {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  if (error && typeof error === 'object') {
-    const maybeError = error as { message?: string; details?: string; hint?: string };
-    return maybeError.message || maybeError.details || maybeError.hint || 'Please try again.';
-  }
-
-  return 'Please try again.';
-};
 
 export const MaintenanceScreen = () => {
   const { userId, activeVehicleId } = useAppContext();
@@ -36,13 +27,38 @@ export const MaintenanceScreen = () => {
   const [dueOdometer, setDueOdometer] = useState('');
   const [intervalMiles, setIntervalMiles] = useState('');
 
-  const [completeMileage, setCompleteMileage] = useState('');
-  const [completeCost, setCompleteCost] = useState('');
-  const [completeNotes, setCompleteNotes] = useState('');
-  const [receiptUri, setReceiptUri] = useState<string | undefined>(undefined);
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const upcomingTasks = tasks.filter((task) => task.status === 'upcoming');
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => ['50%'], []);
+
+  const {
+    completeMileage,
+    setCompleteMileage,
+    completeCost,
+    setCompleteCost,
+    completeNotes,
+    setCompleteNotes,
+    receiptUri,
+    onAttachReceipt,
+    completeMaintenanceTask,
+  } = useMaintenanceCompletion({
+    userId,
+    upcomingTasks,
+    completeTask,
+    onSuccess: () => {
+      closeModal();
+    },
+  });
+
+  const closeModal = () => {
+    bottomSheetModalRef.current?.dismiss();
+  };
+
+  const onSheetDismiss = useCallback(() => {
+    setCompletingTaskId(null);
+  }, []);
 
   const onCreateTask = async () => {
     if (!title) {
@@ -78,66 +94,27 @@ export const MaintenanceScreen = () => {
     setShowAddForm(false);
   };
 
-  const onCompleteTask = async (taskId: string) => {
-    const task = upcomingTasks.find((item) => item.id === taskId);
+  const onMarkComplete = (taskId: string) => {
+    setCompletingTaskId(taskId);
+    bottomSheetModalRef.current?.present();
+  };
 
-    if (!task) {
+  const selectedTask = completingTaskId
+    ? upcomingTasks.find((item) => item.id === completingTaskId) ?? null
+    : null;
+
+  const handleCompleteTask = () => {
+    if (!selectedTask) {
       return;
     }
 
-    if (!completeMileage || !completeCost) {
-      Alert.alert('Missing fields', 'Enter completion mileage and cost first.');
-      return;
-    }
-
-    setCompletingTaskId(task.id);
-
-    try {
-      let photoUrl: string | undefined;
-
-      if (receiptUri) {
-        try {
-          photoUrl = await uploadReceipt(userId, receiptUri);
-        } catch {
-          // Attachment is optional, continue completion.
-        }
-      }
-
-      await completeTask({
-        task,
-        odometer: Number(completeMileage),
-        cost: Number(completeCost),
-        notes: completeNotes,
-        photo_url: photoUrl,
-      });
-
-      await cancelMaintenanceReminder(task.id);
-
-      setCompleteMileage('');
-      setCompleteCost('');
-      setCompleteNotes('');
-      setReceiptUri(undefined);
-    } catch (error) {
-      const message = getErrorMessage(error);
-      Alert.alert('Could not complete task', message);
-    } finally {
-      setCompletingTaskId(null);
-    }
+    void completeMaintenanceTask(selectedTask.id);
   };
 
-  const onAttachReceipt = async () => {
-    try {
-      const image = await pickImageAsync();
-      if (image?.uri) {
-        setReceiptUri(image.uri);
-      }
-    } catch {
-      Alert.alert('Could not attach receipt', 'Please try again.');
-    }
-  };
 
   return (
-    <Screen>
+    <BottomSheetModalProvider>
+      <Screen>
       <Text style={styles.title}>Maintenance</Text>
       <Text style={styles.subtitle}>Track upcoming services and auto-log completed work.</Text>
 
@@ -155,7 +132,7 @@ export const MaintenanceScreen = () => {
             <View style={styles.completeAction}>
               <PrimaryButton
                 label={completingTaskId === task.id ? 'Marking Complete...' : 'Mark Complete'}
-                onPress={() => onCompleteTask(task.id)}
+                onPress={() => onMarkComplete(task.id)}
                 disabled={Boolean(completingTaskId)}
               />
             </View>
@@ -163,35 +140,10 @@ export const MaintenanceScreen = () => {
         ))}
       </View>
 
-      {/* Complete task inputs — only useful once tasks exist */}
-      {upcomingTasks.length > 0 ? (
-        <View style={styles.card}>
-          <Text style={styles.sectionLabel}>Complete a Task</Text>
-          <InputField
-            label="Completion Odometer"
-            value={completeMileage}
-            onChangeText={setCompleteMileage}
-            keyboardType="numeric"
-          />
-          <InputField
-            label="Completion Cost"
-            value={completeCost}
-            onChangeText={setCompleteCost}
-            keyboardType="numeric"
-          />
-          <InputField label="Notes (Optional)" value={completeNotes} onChangeText={setCompleteNotes} />
-          <PrimaryButton
-            label={receiptUri ? 'Receipt Attached ✓' : 'Attach Receipt (Optional)'}
-            onPress={onAttachReceipt}
-            variant="secondary"
-          />
-        </View>
-      ) : null}
-
       {showAddForm ? (
-        <View style={styles.card}>
+        <SafeAreaView style={styles.card}>
           <InputField label="Service Title" value={title} onChangeText={setTitle} placeholder="Oil change" />
-          <InputField label="Due Date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} />
+          <InputField label="Due Date (MM-DD-YYYY)" value={dueDate} onChangeText={setDueDate} />
           <InputField
             label="Due Odometer"
             value={dueOdometer}
@@ -205,7 +157,7 @@ export const MaintenanceScreen = () => {
             keyboardType="numeric"
           />
           <PrimaryButton label="Save Task" onPress={onCreateTask} />
-        </View>
+        </SafeAreaView>
       ) : null}
 
       {/* Add task toggle + collapsible form */}
@@ -216,7 +168,24 @@ export const MaintenanceScreen = () => {
           variant="secondary"
         />
       </View>
-    </Screen>
+      </Screen>
+
+      <MaintenanceCompletionSheet
+        bottomSheetModalRef={bottomSheetModalRef}
+        snapPoints={snapPoints}
+        task={selectedTask}
+        completeMileage={completeMileage}
+        setCompleteMileage={setCompleteMileage}
+        completeCost={completeCost}
+        setCompleteCost={setCompleteCost}
+        completeNotes={completeNotes}
+        setCompleteNotes={setCompleteNotes}
+        receiptUri={receiptUri}
+        onAttachReceipt={onAttachReceipt}
+        onCompleteTask={handleCompleteTask}
+        onDismiss={onSheetDismiss}
+      />
+    </BottomSheetModalProvider>
   );
 };
 
