@@ -12,6 +12,7 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { useAutoTrack } from '../hooks/useAutoTrack';
 import { useMaintenanceCompletion } from '../hooks/useMaintenanceCompletion';
+import { buildMaintenanceTaskPayload, hasTaskTitle } from '../lib/maintenance';
 import { useAppVehicleScope } from '../stores/appStoreHooks';
 import {
   requestNotificationPermission,
@@ -61,19 +62,19 @@ export const MaintenanceScreen = () => {
   }, []);
 
   const onCreateTask = async () => {
-    if (!title) {
+    if (!hasTaskTitle(title)) {
       Alert.alert('Missing title', 'Service title is required.');
       return;
     }
 
-    const dueDateIso = dueDate ? new Date(dueDate).toISOString() : undefined;
-
-    const createdTask = await createTask({
+    const { payload, dueDateIso } = buildMaintenanceTaskPayload({
       title,
-      due_date: dueDateIso,
-      due_odometer: dueOdometer ? Number(dueOdometer) : undefined,
-      interval_miles: intervalMiles ? Number(intervalMiles) : undefined,
+      dueDate,
+      dueOdometer,
+      intervalMiles,
     });
+
+    const createdTask = await createTask(payload);
 
     if (dueDateIso) {
       const canNotify = await requestNotificationPermission();

@@ -3,14 +3,9 @@ import { ActivityIndicator, Alert, Linking, Pressable, RefreshControl, StyleShee
 
 import { Screen } from '../components/Screen';
 import { useAutoTrack } from '../hooks/useAutoTrack';
+import { getHistoryEventCardStyle } from '../lib/history';
 import { resolveReceiptUrl } from '../lib/image';
 import { useAppVehicleScope } from '../stores/appStoreHooks';
-
-const eventCardStyles: Record<string, { backgroundColor: string; borderColor: string }> = {
-  fuel:        { backgroundColor: 'rgba(59,130,246,0.15)',  borderColor: 'rgba(59,130,246,0.3)' },
-  maintenance: { backgroundColor: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.3)' },
-  repair:      { backgroundColor: 'rgba(245,158,11,0.15)', borderColor: 'rgba(245,158,11,0.3)' },
-};
 
 export const HistoryScreen = () => {
   const { userId, activeVehicleId } = useAppVehicleScope();
@@ -70,10 +65,7 @@ export const HistoryScreen = () => {
         ) : null}
 
         {history.map((entry) => {
-          const cardStyle = eventCardStyles[entry.event_type] ?? {
-            backgroundColor: '#18181b',
-            borderColor: '#27272a',
-          };
+          const cardStyle = getHistoryEventCardStyle(entry.event_type);
           return (
             <View key={entry.id} style={[styles.card, cardStyle]}>
               <Text style={styles.eventType}>{entry.event_type}</Text>

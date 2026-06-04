@@ -4,6 +4,7 @@ import { InputField } from '../components/InputField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { signUpWithPassword } from '../lib/auth';
+import { validateCreateAccountForm } from '../lib/createAccount';
 import { getErrorMessage } from '../lib/errorMessage';
 import { View, Text, StyleSheet, BackHandler, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -11,7 +12,6 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { RootStackParamList } from '../navigation/AppNavigator';
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const CreateAccountScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'CreateAccount'>>();
   const [email, setEmail] = useState('');
@@ -26,30 +26,8 @@ export const CreateAccountScreen = () => {
   const passwordRef = useRef<TextInput>(null);
   const confirmPasswordRef = useRef<TextInput>(null);
 
-  const validateForm = (): string | null => {
-    const trimmedEmail = email.trim();
-
-    if (!trimmedEmail || !password || !confirmPassword) {
-      return 'Please fill out all fields.';
-    }
-
-    if (!EMAIL_REGEX.test(trimmedEmail)) {
-      return 'Enter a valid email address.';
-    }
-
-    if (password.length < 8) {
-      return 'Password must be at least 8 characters.';
-    }
-
-    if (password !== confirmPassword) {
-      return 'Passwords do not match.';
-    }
-
-    return null;
-  };
-
   const handleCreateAccount = async () => {
-    const validationError = validateForm();
+    const validationError = validateCreateAccountForm({ email, password, confirmPassword });
 
     if (validationError) {
       setErrorMessage(validationError);

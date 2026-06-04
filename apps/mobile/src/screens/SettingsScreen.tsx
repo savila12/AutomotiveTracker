@@ -7,6 +7,7 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { signOut } from '../lib/auth';
 import { APP_VERSION, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL, USE_MOCK_DATA } from '../lib/devConfig';
+import { openLegalUrl } from '../lib/settings';
 import { useUnitSystemPreference } from '../stores/appStoreHooks';
 import { UnitSystem } from '../types/models';
 
@@ -66,19 +67,6 @@ export const SettingsScreen = () => {
     }
   };
 
-  const openLegalUrl = async (url: string | null, label: string) => {
-    if (!url) {
-      Alert.alert(`${label} unavailable`, 'This link is not configured yet.');
-      return;
-    }
-
-    try {
-      await Linking.openURL(url);
-    } catch {
-      Alert.alert('Could not open link', 'Please try again.');
-    }
-  };
-
   return (
     <Screen>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
@@ -129,11 +117,21 @@ export const SettingsScreen = () => {
         <View style={styles.card}>
           <LinkRow
             label="Privacy Policy"
-            onPress={() => openLegalUrl(PRIVACY_POLICY_URL, 'Privacy Policy')}
+            onPress={() => openLegalUrl({
+              url: PRIVACY_POLICY_URL,
+              label: 'Privacy Policy',
+              openUrl: Linking.openURL,
+              alert: Alert.alert,
+            })}
           />
           <LinkRow
             label="Terms of Service"
-            onPress={() => openLegalUrl(TERMS_OF_SERVICE_URL, 'Terms of Service')}
+            onPress={() => openLegalUrl({
+              url: TERMS_OF_SERVICE_URL,
+              label: 'Terms of Service',
+              openUrl: Linking.openURL,
+              alert: Alert.alert,
+            })}
           />
         </View>
 

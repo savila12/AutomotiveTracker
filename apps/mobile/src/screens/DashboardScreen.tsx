@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 // Styling tier: stable. Prefer NativeWind utilities for fast iteration.
 import { useAutoTrack } from '../hooks/useAutoTrack';
 import { monthlyMiles, monthlySpend, rollingAverageMpg } from '../lib/calculations';
+import { getNextUpcomingTask, getVehicleSummary } from '../lib/dashboard';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { StatCard } from '../components/StatCard';
@@ -26,15 +27,13 @@ export const DashboardScreen = () => {
   const milesThisMonth = monthlyMiles(fuelLogs);
   const spendThisMonth = monthlySpend(fuelLogs);
   const avgMpg = rollingAverageMpg(fuelLogs);
-  const nextTask = tasks.find((task) => task.status === 'upcoming') || null;
+  const nextTask = getNextUpcomingTask(tasks);
 
   return (
     <Screen>
       <Text style={styles.title}>Dashboard</Text>
       <Text style={styles.subtitle}>
-        {activeVehicle
-          ? `${activeVehicle.year} ${activeVehicle.make} ${activeVehicle.model}`
-          : 'Add a vehicle to start tracking'}
+        {getVehicleSummary(activeVehicle)}
       </Text>
 
       <View style={styles.row}>

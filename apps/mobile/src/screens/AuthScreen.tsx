@@ -3,6 +3,7 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 
 // Styling tier: critical. Keep core layout and form surfaces on explicit RN styles.
 import { signInWithGoogle, signInWithPassword } from '../lib/auth';
+import { getAuthErrorMessage } from '../lib/authScreen';
 import { InputField } from '../components/InputField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
@@ -23,7 +24,7 @@ export const AuthScreen = () => {
       setIsLoading(true);
       await signInWithPassword(email.trim(), password);
     } catch (error: unknown) {
-      Alert.alert('Sign in failed', error instanceof Error ? error.message : 'Please try again.');
+      Alert.alert('Sign in failed', getAuthErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -38,7 +39,7 @@ export const AuthScreen = () => {
       setIsLoading(true);
       await signInWithGoogle();
     } catch (error: unknown) {
-      Alert.alert('Google sign in failed', error instanceof Error ? error.message : 'Please try again.');
+      Alert.alert('Google sign in failed', getAuthErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
