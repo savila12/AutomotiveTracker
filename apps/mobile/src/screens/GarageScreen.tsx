@@ -7,6 +7,7 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { VehicleCard } from '../components/VehicleCard';
 import { Screen } from '../components/Screen';
 import { useAutoTrack } from '../hooks/useAutoTrack';
+import { buildCreateVehiclePayload, hasRequiredVehicleFields } from '../lib/garage';
 import { useAppVehicleScope, useSetActiveVehicleId } from '../stores/appStoreHooks';
 import { UnitSystem } from '../types/models';
 
@@ -63,7 +64,7 @@ export const GarageScreen = () => {
   };
 
   const onAddVehicle = async () => {
-    if (!year || !make || !model) {
+    if (!hasRequiredVehicleFields({ year, make, model })) {
       Alert.alert('Missing details', 'Year, make, and model are required.');
       return;
     }
@@ -71,16 +72,18 @@ export const GarageScreen = () => {
     try {
       setIsAddingVehicle(true);
 
-      const created = await createVehicle({
-        year: Number(year),
-        make,
-        model,
-        trim,
-        color,
-        vin,
-        unit_system: unitSystem,
-        current_odometer: Number(odometer || 0),
-      });
+      const created = await createVehicle(
+        buildCreateVehiclePayload({
+          year,
+          make,
+          model,
+          trim,
+          color,
+          vin,
+          odometer,
+          unitSystem,
+        }),
+      );
 
       if (!activeVehicleId) {
         await setActiveVehicle(created.id);
