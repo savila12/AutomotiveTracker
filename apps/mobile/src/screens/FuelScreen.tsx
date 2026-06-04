@@ -8,13 +8,14 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { useAutoTrack } from '../hooks/useAutoTrack';
 import { rollingAverageMpg } from '../lib/calculations';
+import { getUnitLabels, parsePositiveNumber, todayIsoDate } from '../lib/fuel';
 import { useAppVehicleScope } from '../stores/appStoreHooks';
 
 export const FuelScreen = () => {
   const { userId, activeVehicleId } = useAppVehicleScope();
   const { activeVehicle, fuelLogs, createFuelLog } = useAutoTrack(userId, activeVehicleId);
 
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(todayIsoDate());
   const [odometer, setOdometer] = useState('');
   const [quantity, setQuantity] = useState('');
   const [pricePerUnit, setPricePerUnit] = useState('');
@@ -34,15 +35,23 @@ export const FuelScreen = () => {
     [fuelLogs],
   );
 
+  const unitLabels = useMemo(() => getUnitLabels(activeVehicle?.unit_system), [activeVehicle?.unit_system]);
+
+  const resetForm = () => {
+    setOdometer('');
+    setQuantity('');
+    setPricePerUnit('');
+  };
+
   const onAddFuel = async () => {
     if (!activeVehicle) {
       Alert.alert('No active vehicle', 'Set a primary vehicle first.');
       return;
     }
 
-    const odometerValue = Number(odometer);
-    const quantityValue = Number(quantity);
-    const priceValue = Number(pricePerUnit);
+    const odometerValue = parsePositiveNumber(odometer);
+    const quantityValue = parsePositiveNumber(quantity);
+    const priceValue = parsePositiveNumber(pricePerUnit);
 
     if (!odometerValue || !quantityValue || !priceValue) {
       Alert.alert('Missing fields', 'Enter odometer, quantity, and price.');
@@ -63,9 +72,7 @@ export const FuelScreen = () => {
         unit_system: activeVehicle.unit_system,
       });
 
-      setOdometer('');
-      setQuantity('');
-      setPricePerUnit('');
+      resetForm();
     } catch (error: unknown) {
       Alert.alert('Could not save fill-up', error instanceof Error ? error.message : 'Please try again.');
     } finally {
@@ -82,13 +89,13 @@ export const FuelScreen = () => {
         <InputField label="Date (YYYY-MM-DD)" value={date} onChangeText={setDate} />
         <InputField label="Odometer" value={odometer} onChangeText={setOdometer} keyboardType="numeric" />
         <InputField
-          label={activeVehicle?.unit_system === 'metric' ? 'Liters' : 'Gallons'}
+          label={unitLabels.quantity}
           value={quantity}
           onChangeText={setQuantity}
           keyboardType="numeric"
         />
         <InputField
-          label={activeVehicle?.unit_system === 'metric' ? 'Price per Liter' : 'Price per Gallon'}
+          label={unitLabels.pricePerUnit}
           value={pricePerUnit}
           onChangeText={setPricePerUnit}
           keyboardType="numeric"
