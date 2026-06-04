@@ -12,15 +12,14 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { useAutoTrack } from '../hooks/useAutoTrack';
 import { useMaintenanceCompletion } from '../hooks/useMaintenanceCompletion';
-import { useAppStore } from '../stores/appStore';
+import { useAppVehicleScope } from '../stores/appStoreHooks';
 import {
   requestNotificationPermission,
   scheduleMaintenanceReminder,
 } from '../lib/notifications';
 
 export const MaintenanceScreen = () => {
-  const userId = useAppStore((state) => state.userId);
-  const activeVehicleId = useAppStore((state) => state.activeVehicleId);
+  const { userId, activeVehicleId } = useAppVehicleScope();
   const { tasks, createTask, completeTask } = useAutoTrack(userId, activeVehicleId);
 
   const [title, setTitle] = useState('');

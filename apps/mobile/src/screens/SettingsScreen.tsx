@@ -7,7 +7,7 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { signOut } from '../lib/auth';
 import { APP_VERSION, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL, USE_MOCK_DATA } from '../lib/devConfig';
-import { useAppStore } from '../stores/appStore';
+import { useUnitSystemPreference } from '../stores/appStoreHooks';
 import { UnitSystem } from '../types/models';
 
 const useMockData = USE_MOCK_DATA;
@@ -43,8 +43,7 @@ const LinkRow = ({
 );
 
 export const SettingsScreen = () => {
-  const unitSystem = useAppStore((state) => state.unitSystem);
-  const saveProfile = useAppStore((state) => state.saveProfile);
+  const { unitSystem, saveProfile } = useUnitSystemPreference();
   const [isSavingUnits, setIsSavingUnits] = useState(false);
 
   const onSelectUnits = async (value: UnitSystem) => {

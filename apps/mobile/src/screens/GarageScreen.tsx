@@ -7,13 +7,12 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { VehicleCard } from '../components/VehicleCard';
 import { Screen } from '../components/Screen';
 import { useAutoTrack } from '../hooks/useAutoTrack';
-import { useAppStore } from '../stores/appStore';
+import { useAppVehicleScope, useSetActiveVehicleId } from '../stores/appStoreHooks';
 import { UnitSystem } from '../types/models';
 
 export const GarageScreen = () => {
-  const userId = useAppStore((state) => state.userId);
-  const activeVehicleId = useAppStore((state) => state.activeVehicleId);
-  const setActiveVehicleId = useAppStore((state) => state.setActiveVehicleId);
+  const { userId, activeVehicleId } = useAppVehicleScope();
+  const setActiveVehicleId = useSetActiveVehicleId();
   const { vehicles, createVehicle, setActiveVehicle, deleteVehicle } = useAutoTrack(userId, activeVehicleId);
 
   const [year, setYear] = useState('');
