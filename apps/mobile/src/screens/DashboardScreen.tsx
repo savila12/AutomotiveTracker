@@ -6,7 +6,7 @@ import { monthlyMiles, monthlySpend, rollingAverageMpg } from '../lib/calculatio
 import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { StatCard } from '../components/StatCard';
-import { useAppContext } from '../lib/AppContext';
+import { useAppStore } from '../stores/appStore';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 
 type MainTabParamList = {
@@ -19,7 +19,8 @@ type MainTabParamList = {
 };
 
 export const DashboardScreen = () => {
-  const { userId, activeVehicleId } = useAppContext();
+  const userId = useAppStore((state) => state.userId);
+  const activeVehicleId = useAppStore((state) => state.activeVehicleId);
   const { activeVehicle, fuelLogs, tasks } = useAutoTrack(userId, activeVehicleId);
   const navigation = useNavigation<NavigationProp<MainTabParamList>>();
 

@@ -3,7 +3,6 @@ import { fireEvent, render, screen, userEvent, waitFor } from '@testing-library/
 
 import { MaintenanceScreen } from '../../src/screens/MaintenanceScreen';
 
-const mockUseAppContext = jest.fn();
 const mockUseAutoTrack = jest.fn();
 const mockCreateTask = jest.fn();
 const mockCompleteTask = jest.fn();
@@ -12,9 +11,13 @@ const mockUploadReceipt = jest.fn();
 const mockRequestNotificationPermission = jest.fn();
 const mockScheduleMaintenanceReminder = jest.fn();
 const mockCancelMaintenanceReminder = jest.fn();
+const mockAppStoreState = {
+    userId: 'user-1',
+    activeVehicleId: 'vehicle-1',
+};
 
-jest.mock('../../src/lib/AppContext', () => ({
-    useAppContext: () => mockUseAppContext(),
+jest.mock('../../src/stores/appStore', () => ({
+    useAppStore: (selector: (state: typeof mockAppStoreState) => unknown) => selector(mockAppStoreState),
 }));
 
 jest.mock('../../src/hooks/useAutoTrack', () => ({
@@ -35,10 +38,8 @@ jest.mock('../../src/lib/notifications', () => ({
 describe('MaintenanceScreen', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseAppContext.mockReturnValue({
-            userId: 'user-1',
-            activeVehicleId: 'vehicle-1',
-        });
+        mockAppStoreState.userId = 'user-1';
+        mockAppStoreState.activeVehicleId = 'vehicle-1';
         mockCreateTask.mockResolvedValue(undefined);
         mockCompleteTask.mockResolvedValue(undefined);
         mockRequestNotificationPermission.mockResolvedValue(true);

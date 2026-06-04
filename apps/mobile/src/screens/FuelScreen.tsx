@@ -8,10 +8,11 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { useAutoTrack } from '../hooks/useAutoTrack';
 import { rollingAverageMpg } from '../lib/calculations';
-import { useAppContext } from '../lib/AppContext';
+import { useAppStore } from '../stores/appStore';
 
 export const FuelScreen = () => {
-  const { userId, activeVehicleId } = useAppContext();
+  const userId = useAppStore((state) => state.userId);
+  const activeVehicleId = useAppStore((state) => state.activeVehicleId);
   const { activeVehicle, fuelLogs, createFuelLog } = useAutoTrack(userId, activeVehicleId);
 
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));

@@ -5,9 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
-import { useAppContext } from '../lib/AppContext';
 import { signOut } from '../lib/auth';
 import { APP_VERSION, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL, USE_MOCK_DATA } from '../lib/devConfig';
+import { useAppStore } from '../stores/appStore';
 import { UnitSystem } from '../types/models';
 
 const useMockData = USE_MOCK_DATA;
@@ -43,7 +43,8 @@ const LinkRow = ({
 );
 
 export const SettingsScreen = () => {
-  const { unitSystem, saveProfile } = useAppContext();
+  const unitSystem = useAppStore((state) => state.unitSystem);
+  const saveProfile = useAppStore((state) => state.saveProfile);
   const [isSavingUnits, setIsSavingUnits] = useState(false);
 
   const onSelectUnits = async (value: UnitSystem) => {

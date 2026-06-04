@@ -3,15 +3,19 @@ import { fireEvent, render, screen, userEvent, waitFor } from '@testing-library/
 
 import { GarageScreen } from '../../src/screens/GarageScreen';
 
-const mockUseAppContext = jest.fn();
 const mockUseAutoTrack = jest.fn();
 const mockSetActiveVehicleId = jest.fn();
 const mockCreateVehicle = jest.fn();
 const mockSetActiveVehicle = jest.fn();
 const mockDeleteVehicle = jest.fn();
+const mockAppStoreState = {
+    userId: 'user-1',
+    activeVehicleId: null as string | null,
+    setActiveVehicleId: mockSetActiveVehicleId,
+};
 
-jest.mock('../../src/lib/AppContext', () => ({
-    useAppContext: () => mockUseAppContext(),
+jest.mock('../../src/stores/appStore', () => ({
+    useAppStore: (selector: (state: typeof mockAppStoreState) => unknown) => selector(mockAppStoreState),
 }));
 
 jest.mock('../../src/hooks/useAutoTrack', () => ({
@@ -21,11 +25,9 @@ jest.mock('../../src/hooks/useAutoTrack', () => ({
 describe('GarageScreen', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseAppContext.mockReturnValue({
-            userId: 'user-1',
-            activeVehicleId: null,
-            setActiveVehicleId: mockSetActiveVehicleId,
-        });
+        mockAppStoreState.userId = 'user-1';
+        mockAppStoreState.activeVehicleId = null;
+        mockAppStoreState.setActiveVehicleId = mockSetActiveVehicleId;
         mockCreateVehicle.mockResolvedValue({
             id: 'vehicle-1',
             year: 2024,
@@ -92,11 +94,7 @@ describe('GarageScreen', () => {
     });
 
     it('does not set active vehicle when one is already active', async () => {
-        mockUseAppContext.mockReturnValue({
-            userId: 'user-1',
-            activeVehicleId: 'existing-vehicle',
-            setActiveVehicleId: mockSetActiveVehicleId,
-        });
+        mockAppStoreState.activeVehicleId = 'existing-vehicle';
         const view = render(<GarageScreen />);
         const user = userEvent.setup();
 

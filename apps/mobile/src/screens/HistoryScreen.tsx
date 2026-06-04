@@ -3,8 +3,8 @@ import { ActivityIndicator, Alert, Linking, Pressable, RefreshControl, StyleShee
 
 import { Screen } from '../components/Screen';
 import { useAutoTrack } from '../hooks/useAutoTrack';
-import { useAppContext } from '../lib/AppContext';
 import { resolveReceiptUrl } from '../lib/image';
+import { useAppStore } from '../stores/appStore';
 
 const eventCardStyles: Record<string, { backgroundColor: string; borderColor: string }> = {
   fuel:        { backgroundColor: 'rgba(59,130,246,0.15)',  borderColor: 'rgba(59,130,246,0.3)' },
@@ -13,7 +13,8 @@ const eventCardStyles: Record<string, { backgroundColor: string; borderColor: st
 };
 
 export const HistoryScreen = () => {
-  const { userId, activeVehicleId } = useAppContext();
+  const userId = useAppStore((state) => state.userId);
+  const activeVehicleId = useAppStore((state) => state.activeVehicleId);
   const { history, refresh } = useAutoTrack(userId, activeVehicleId);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [openingAttachmentId, setOpeningAttachmentId] = useState<string | null>(null);

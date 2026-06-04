@@ -4,12 +4,15 @@ import { render, screen, userEvent, waitFor } from '@testing-library/react-nativ
 
 import { SettingsScreen } from '../../src/screens/SettingsScreen';
 
-const mockUseAppContext = jest.fn();
 const mockSaveProfile = jest.fn();
 const mockSignOut = jest.fn();
+const mockAppStoreState = {
+    unitSystem: 'imperial',
+    saveProfile: mockSaveProfile,
+};
 
-jest.mock('../../src/lib/AppContext', () => ({
-    useAppContext: () => mockUseAppContext(),
+jest.mock('../../src/stores/appStore', () => ({
+    useAppStore: (selector: (state: typeof mockAppStoreState) => unknown) => selector(mockAppStoreState),
 }));
 
 jest.mock('../../src/lib/auth', () => ({
@@ -29,10 +32,8 @@ describe('SettingsScreen', () => {
         jest.spyOn(Linking, 'openURL').mockResolvedValue();
         mockSaveProfile.mockResolvedValue(undefined);
         mockSignOut.mockResolvedValue(undefined);
-        mockUseAppContext.mockReturnValue({
-            unitSystem: 'imperial',
-            saveProfile: mockSaveProfile,
-        });
+        mockAppStoreState.unitSystem = 'imperial';
+        mockAppStoreState.saveProfile = mockSaveProfile;
     });
 
     it('renders settings sections and app version', () => {

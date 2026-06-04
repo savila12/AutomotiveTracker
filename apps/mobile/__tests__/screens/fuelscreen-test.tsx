@@ -3,12 +3,15 @@ import { fireEvent, render, screen, userEvent, waitFor } from '@testing-library/
 
 import { FuelScreen } from '../../src/screens/FuelScreen';
 
-const mockUseAppContext = jest.fn();
 const mockUseAutoTrack = jest.fn();
 const mockCreateFuelLog = jest.fn();
+const mockAppStoreState = {
+    userId: 'user-1',
+    activeVehicleId: 'vehicle-1',
+};
 
-jest.mock('../../src/lib/AppContext', () => ({
-    useAppContext: () => mockUseAppContext(),
+jest.mock('../../src/stores/appStore', () => ({
+    useAppStore: (selector: (state: typeof mockAppStoreState) => unknown) => selector(mockAppStoreState),
 }));
 
 jest.mock('../../src/hooks/useAutoTrack', () => ({
@@ -22,10 +25,8 @@ jest.mock('react-native-gifted-charts', () => ({
 describe('FuelScreen', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseAppContext.mockReturnValue({
-            userId: 'user-1',
-            activeVehicleId: 'vehicle-1',
-        });
+        mockAppStoreState.userId = 'user-1';
+        mockAppStoreState.activeVehicleId = 'vehicle-1';
         mockCreateFuelLog.mockResolvedValue(undefined);
         mockUseAutoTrack.mockReturnValue({
             activeVehicle: { id: 'vehicle-1', unit_system: 'imperial' },

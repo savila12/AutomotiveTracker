@@ -12,14 +12,15 @@ import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { useAutoTrack } from '../hooks/useAutoTrack';
 import { useMaintenanceCompletion } from '../hooks/useMaintenanceCompletion';
-import { useAppContext } from '../lib/AppContext';
+import { useAppStore } from '../stores/appStore';
 import {
   requestNotificationPermission,
   scheduleMaintenanceReminder,
 } from '../lib/notifications';
 
 export const MaintenanceScreen = () => {
-  const { userId, activeVehicleId } = useAppContext();
+  const userId = useAppStore((state) => state.userId);
+  const activeVehicleId = useAppStore((state) => state.activeVehicleId);
   const { tasks, createTask, completeTask } = useAutoTrack(userId, activeVehicleId);
 
   const [title, setTitle] = useState('');
@@ -44,7 +45,7 @@ export const MaintenanceScreen = () => {
     onAttachReceipt,
     completeMaintenanceTask,
   } = useMaintenanceCompletion({
-    userId,
+    userId: userId ?? '',
     upcomingTasks,
     completeTask,
     onSuccess: () => {

@@ -3,12 +3,15 @@ import { Linking } from 'react-native';
 
 import { HistoryScreen } from '../../src/screens/HistoryScreen';
 
-const mockUseAppContext = jest.fn();
 const mockUseAutoTrack = jest.fn();
 const mockResolveReceiptUrl = jest.fn();
+const mockAppStoreState = {
+    userId: 'user-1',
+    activeVehicleId: 'vehicle-1',
+};
 
-jest.mock('../../src/lib/AppContext', () => ({
-    useAppContext: () => mockUseAppContext(),
+jest.mock('../../src/stores/appStore', () => ({
+    useAppStore: (selector: (state: typeof mockAppStoreState) => unknown) => selector(mockAppStoreState),
 }));
 
 jest.mock('../../src/hooks/useAutoTrack', () => ({
@@ -23,10 +26,8 @@ describe('HistoryScreen', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.spyOn(Linking, 'openURL').mockResolvedValue();
-        mockUseAppContext.mockReturnValue({
-            userId: 'user-1',
-            activeVehicleId: 'vehicle-1',
-        });
+        mockAppStoreState.userId = 'user-1';
+        mockAppStoreState.activeVehicleId = 'vehicle-1';
         mockUseAutoTrack.mockReturnValue({
             history: [],
             refresh: jest.fn(),

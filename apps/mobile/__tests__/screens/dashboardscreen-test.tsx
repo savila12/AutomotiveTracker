@@ -2,12 +2,15 @@ import { render, screen, userEvent } from '@testing-library/react-native';
 
 import { DashboardScreen } from '../../src/screens/DashboardScreen';
 
-const mockUseAppContext = jest.fn();
 const mockUseAutoTrack = jest.fn();
 const mockNavigate = jest.fn();
+const mockAppStoreState = {
+    userId: 'user-1',
+    activeVehicleId: 'vehicle-1',
+};
 
-jest.mock('../../src/lib/AppContext', () => ({
-    useAppContext: () => mockUseAppContext(),
+jest.mock('../../src/stores/appStore', () => ({
+    useAppStore: (selector: (state: typeof mockAppStoreState) => unknown) => selector(mockAppStoreState),
 }));
 
 jest.mock('../../src/hooks/useAutoTrack', () => ({
@@ -25,10 +28,8 @@ jest.mock('@react-navigation/native', () => {
 describe('DashboardScreen', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseAppContext.mockReturnValue({
-            userId: 'user-1',
-            activeVehicleId: 'vehicle-1',
-        });
+        mockAppStoreState.userId = 'user-1';
+        mockAppStoreState.activeVehicleId = 'vehicle-1';
         mockUseAutoTrack.mockReturnValue({
             activeVehicle: { year: 2020, make: 'Honda', model: 'Civic' },
             fuelLogs: [
