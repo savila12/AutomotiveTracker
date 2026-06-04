@@ -1,7 +1,8 @@
-import { PropsWithChildren, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { PropsWithChildren, createContext, useCallback, useContext, useEffect, useMemo } from 'react';
 
 import { UnitSystem } from '../types/models';
 import { ensureProfile, updateProfile } from './api';
+import { useAppStore } from '../stores/appStore';
 
 type AppContextValue = {
   userId: string;
@@ -14,26 +15,36 @@ type AppContextValue = {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export const AppProvider = ({ userId, children }: PropsWithChildren<{ userId: string }>) => {
-  const [activeVehicleId, setActiveVehicleId] = useState<string | null>(null);
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>('imperial');
+  const initializeForUser = useAppStore((state) => state.initializeForUser);
+  const activeVehicleId = useAppStore((state) => state.activeVehicleId);
+  const setActiveVehicleId = useAppStore((state) => state.setActiveVehicleId);
+  const unitSystem = useAppStore((state) => state.unitSystem);
+  const setUnitSystem = useAppStore((state) => state.setUnitSystem);
+  const hydrateProfile = useAppStore((state) => state.hydrateProfile);
+
+  useEffect(() => {
+    initializeForUser(userId);
+  }, [initializeForUser, userId]);
 
   useEffect(() => {
     ensureProfile(userId)
       .then((profile) => {
-        setActiveVehicleId(profile.active_vehicle_id || null);
-        setUnitSystem(profile.default_unit_system ?? 'imperial');
+        hydrateProfile({
+          activeVehicleId: profile.active_vehicle_id || null,
+          unitSystem: profile.default_unit_system ?? 'imperial',
+        });
       })
       .catch(() => {
         setActiveVehicleId(null);
       });
-  }, [userId]);
+  }, [hydrateProfile, setActiveVehicleId, userId]);
 
   const saveProfile = useCallback(
     async (patch: { default_unit_system?: UnitSystem }) => {
       const updated = await updateProfile(userId, patch);
       if (patch.default_unit_system !== undefined) setUnitSystem(updated.default_unit_system ?? 'imperial');
     },
-    [userId],
+    [setUnitSystem, userId],
   );
 
   const value = useMemo(
